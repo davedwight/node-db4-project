@@ -15,45 +15,34 @@ async function getRecipeById(id) {
     .where("r.recipe_id", id)
     .orderBy("s.step_number");
 
-  let result = {
+  const result = {
     recipe_name: rows[0].recipe_name,
+    created_at: rows[0].created_at,
+    steps: [],
   };
 
   rows.forEach((row) => {
-    if (row.step_number && !result.steps) {
-      result = {
-        ...result,
-        steps: [],
-      };
+    const stepsArr = [];
+    result.steps.forEach((step) => {
+      stepsArr.push(step.step_number);
+    });
+    if (!stepsArr.includes(row.step_number) && row.step_number) {
       result.steps.push({
         step_number: row.step_number,
-        step_instructions: row.step_instructions,
-      });
-    } else if (row.step_number && result.steps) {
-      result.steps.push({
-        step_number: row.step_number,
-        step_instructions: row.step_instructions,
+        instructions: row.step_instructions,
+        ingredients: [],
       });
     }
+  });
 
-    // if (row.step_number && row.ingredient_name) {
-    //   result.steps.push({
-    //     step_number: row.step_number,
-    //     step_instructions: row.step_instructions,
-    //     ingredients: [],
-    //   });
-    //   rows.forEach((row) => {
-    //     result.steps.ingredients.push({
-    //       ingredient_name: row.ingredient_name,
-    //       ingredient_qty: row.ingredient_qty,
-    //     });
-    //   });
-    // } else if (row.step_number) {
-    //   result.steps.push({
-    //     step_number: row.step_number,
-    //     step_instructions: row.step_instructions,
-    //   });
-    // }
+  rows.forEach((row) => {
+    if (row.ingredient_name) {
+      const stepIndex = row.step_number - 1;
+      result.steps[stepIndex].ingredients.push({
+        ingredient_name: row.ingredient_name,
+        ingredient_qty: row.ingredient_qty,
+      });
+    }
   });
   return result;
 }
